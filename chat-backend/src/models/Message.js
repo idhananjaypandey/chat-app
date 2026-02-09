@@ -1,0 +1,13 @@
+import mongoose from "mongoose";
+
+const messageSchema = new mongoose.Schema(
+  {
+    sender: String,
+    receiver: String,
+    text: String,
+    isGroup: Boolean
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Message", messageSchema);

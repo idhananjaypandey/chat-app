@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat App</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+
+<h2>Signup</h2>
+<input id="su_username" placeholder="Username" />
+<input id="su_name" placeholder="Name" />
+<input id="su_password" type="password" placeholder="Password" />
+<button onclick="signup()">Signup</button>
+
+<hr>
+
+<h2>Login</h2>
+<input id="li_username" placeholder="Username" />
+<input id="li_password" type="password" placeholder="Password" />
+<button onclick="login()">Login</button>
+
+<hr>
+
+<h2>Chat</h2>
+<input id="message" placeholder="Message" />
+<button onclick="sendMessage()">Send</button>
+
+<ul id="messages"></ul>
+
+<script>
+  let socket;
+  let username;
+  let token;
+
+  async function signup() {
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: su_username.value,
+        name: su_name.value,
+        password: su_password.value
+      })
+    });
+
+    alert("Signup done. Now login.");
+  }
+
+  async function login() {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: li_username.value,
+        password: li_password.value
+      })
+    });
+
+    const data = await res.json();
+    token = data.token;
+    username = data.username;
+
+    connectSocket();
+  }
+
+  function connectSocket() {
+    socket = io({
+      auth: { token }
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected");
+    });
+
+    socket.on("receiveMessage", (msg) => {
+      const li = document.createElement("li");
+      li.textContent = `${msg.sender}: ${msg.text}`;
+      messages.appendChild(li);
+    });
+  }
+
+  function sendMessage() {
+    socket.emit("sendMessage", {
+      sender: username,
+      text: message.value
+    });
+    message.value = "";
+  }
+</script>
+
+</body>
+</html>
